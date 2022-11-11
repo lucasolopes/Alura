@@ -1,0 +1,51 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/bionic64"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 512
+    vb.cpus = 1
+  end
+
+
+
+config.vm.define "vmdocker" do |vmdocker|
+  vmdocker.vm.box = "ubuntu/bionic64"
+
+  vmdocker.vm.network "public_network", ip: "192.168.1.36"
+  
+  vmdocker.vm.provision "shell",
+      inline: "cat /vagrant/configs/ansible/id_bionic.pub >> .ssh/authorized_keys"
+  vmdocker.vm.provision "shell", inline: "apt-get update"
+  vmdocker.vm.provider "virtualbox" do |m|
+    m.memory = 6000
+    m.name =  "docker_com_ansible"
+  end
+end
+
+
+
+  config.vm.define "ansible" do |ansible|
+    ansible.vm.network "public_network", ip: "192.168.1.38"
+
+    ansible.vm.provision "shell",
+      inline: "cp /vagrant/id_bionic /home/vagrant && \
+      chmod 600 /home/vagrant/id_bionic && \
+      chown vagrant:vagrant /home/vagrant/id_bionic" 
+
+    ansible.vm.provision "shell",
+            inline: "apt-get update && \
+                     apt-get install -y software-properties-common && \
+                     apt-add-repository --yes --update ppa:ansible/ansible && \
+                     apt-get install -y ansible"
+  end
+
+
+
+
+
+end
+
+
+
+
+
